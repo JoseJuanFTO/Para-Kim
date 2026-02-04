@@ -159,8 +159,8 @@ function buildText(word){
   });
 
   const img = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-  for(let y=0;y<canvas.height;y+=6){
-    for(let x=0;x<canvas.width;x+=6){
+  for(let y=0;y<canvas.height;y+=3){
+    for(let x=0;x<canvas.width;x+=3){
       const i=(y*canvas.width+x)*4;
       if(img[i+3]>150){
         textParticles.push({
@@ -184,7 +184,7 @@ function drawText(){
       if(d<80){ p.x+=dx*0.05; p.y+=dy*0.05; }
     }
     ctx.beginPath();
-    ctx.arc(p.x,p.y,2,0,Math.PI*2);
+    ctx.arc(p.x,p.y,2.6,0,Math.PI*2);
     ctx.fill();
   });
 }
@@ -219,6 +219,7 @@ document.getElementById('startBtn').onclick = () => {
 </script>
 </body>
 </html>
+
 
 
 
