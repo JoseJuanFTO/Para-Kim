@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Para Kim ✨</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at top, #1a1433, #05010f);
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+canvas {
+  position: fixed;
+  inset: 0;
+}
+
+#startBtn {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: 260px;
+  height: 60px;
+  border-radius: 40px;
+  border: none;
+  background: linear-gradient(135deg, #ff5fa2, #ff9f68);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 0 30px rgba(255,120,180,.6);
+}
+</style>
+</head>
+<body>
+
+<button id="startBtn">Te quiero, da click aquí</button>
+<canvas id="c"></canvas>
+
+<audio id="music" loop>
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+resize();
+window.addEventListener('resize', resize);
+
+function resize() {
+const music = document.getElementById('music');
+music.volume = 0.6;
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+
+/* ================= CURSOR ================= */
+let pointer = { x: null, y: null };
+window.addEventListener('mousemove', e => pointer = {x:e.x,y:e.y});
+window.addEventListener('mouseleave', () => pointer = {x:null,y:null});
+
+window.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  pointer = {x:t.clientX,y:t.clientY};
+});
+window.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  pointer = {x:t.clientX,y:t.clientY};
+});
+window.addEventListener('touchend', () => pointer = {x:null,y:null});
+window.addEventListener('touchcancel', () => pointer = {x:null,y:null});
+
+/* ================= PARTICULAS FONDO ================= */
+class FloatParticle {
+  constructor(symbol=false) {
+    this.x = Math.random()*canvas.width;
+    this.y = Math.random()*canvas.height;
+    this.vx = (Math.random()-.5)*0.3;
+    this.vy = (Math.random()-.5)*0.3;
+    this.size = symbol ? 22 : 2;
+    this.symbol = symbol;
+    this.alpha = Math.random();
+  }
+  draw() {
+    ctx.globalAlpha = this.alpha;
+    ctx.fillStyle = this.symbol ? '#fff' : '#aaa';
+    ctx.font = `${this.size}px serif`;
+    ctx.fillText(this.symbol || '•', this.x, this.y);
+    ctx.globalAlpha = 1;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    if(pointer.x){
+      const dx = this.x-pointer.x;
+      const dy = this.y-pointer.y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if(d<120){
+        this.x += dx*0.02;
+        this.y += dy*0.02;
+      }
+    }
+    this.draw();
+  }
+}
+
+const backgroundParticles = [];
+for(let i=0;i<400;i++) backgroundParticles.push(new FloatParticle());
+for(let i=0;i<120;i++) backgroundParticles.push(new FloatParticle('❤️'));
+for(let i=0;i<120;i++) backgroundParticles.push(new FloatParticle('🌻'));
+
+/* ================= TEXTO ================= */
+const words = ['Hola','Princesa','Kim','Gracias','Por Existir'];
+let textParticles = [];
+let wordIndex = 0;
+
+function buildText(word){
+  textParticles = [];
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 120px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(word, canvas.width/2, canvas.height/2);
+
+  const img = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  for(let y=0;y<canvas.height;y+=6){
+    for(let x=0;x<canvas.width;x+=6){
+      const i=(y*canvas.width+x)*4;
+      if(img[i+3]>150){
+        textParticles.push({
+          x:Math.random()*canvas.width,
+          y:Math.random()*canvas.height,
+          tx:x, ty:y
+        });
+      }
+    }
+  }
+}
+
+function drawText(){
+  ctx.fillStyle='#fff';
+  textParticles.forEach(p=>{
+    p.x+=(p.tx-p.x)*0.07;
+    p.y+=(p.ty-p.y)*0.07;
+    if(pointer.x){
+      const dx=p.x-pointer.x, dy=p.y-pointer.y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<80){ p.x+=dx*0.05; p.y+=dy*0.05; }
+    }
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,2,0,Math.PI*2);
+    ctx.fill();
+  });
+}
+
+/* ================= LOOP ================= */
+let running=false;
+function loop(){
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  backgroundParticles.forEach(p => p.update());
+  if(running) drawText();
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ================= START ================= */
+document.getElementById('startBtn').onclick = () => {
+  document.getElementById('startBtn').remove();
+
+  music.currentTime = 0;
+  music.play().catch(()=>{}); // evita bloqueo en móviles
+
+  running = true;
+  buildText(words[wordIndex]);
+
+  setInterval(() => {
+    wordIndex = (wordIndex + 1) % words.length;
+    buildText(words[wordIndex]);
+  }, 3500);
+};
+</script>
+</body>
+</html>
