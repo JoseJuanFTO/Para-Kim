@@ -120,12 +120,24 @@ let wordIndex = 0;
 function buildText(word){
   textParticles = [];
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 120px Arial';
+
+  // === AJUSTE RESPONSIVE ===
+  let fontSize = canvas.width * 0.25;
+  ctx.font = `bold ${fontSize}px Arial`;
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Reduce hasta que quepa
+  while (ctx.measureText(word).width > canvas.width * 0.85) {
+    fontSize -= 5;
+    ctx.font = `bold ${fontSize}px Arial`;
+  }
+
+  ctx.fillStyle = '#fff';
   ctx.fillText(word, canvas.width/2, canvas.height/2);
 
   const img = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+
   for(let y=0;y<canvas.height;y+=6){
     for(let x=0;x<canvas.width;x+=6){
       const i=(y*canvas.width+x)*4;
@@ -133,7 +145,8 @@ function buildText(word){
         textParticles.push({
           x:Math.random()*canvas.width,
           y:Math.random()*canvas.height,
-          tx:x, ty:y
+          tx:x,
+          ty:y
         });
       }
     }
@@ -186,3 +199,4 @@ document.getElementById('startBtn').onclick = () => {
 </script>
 </body>
 </html>
+
