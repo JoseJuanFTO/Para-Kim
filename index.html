@@ -127,23 +127,38 @@ function buildText(word){
   textParticles = [];
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // === AJUSTE RESPONSIVE ===
-  let fontSize = canvas.width * 0.25;
+  let fontSize = Math.min(canvas.width / (word.length * 0.6), 110);
+  fontSize = Math.max(fontSize, 48);
+
+  ctx.fillStyle = '#fff';
   ctx.font = `bold ${fontSize}px Arial`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Reduce hasta que quepa
-  while (ctx.measureText(word).width > canvas.width * 0.85) {
-    fontSize -= 5;
-    ctx.font = `bold ${fontSize}px Arial`;
-  }
+  // dividir texto en líneas si es muy largo
+  const maxWidth = canvas.width * 0.8;
+  const wordsSplit = word.split(' ');
+  let lines = [];
+  let line = '';
 
-  ctx.fillStyle = '#fff';
-  ctx.fillText(word, canvas.width/2, canvas.height/2);
+  wordsSplit.forEach(w => {
+    const test = line + w + ' ';
+    if (ctx.measureText(test).width > maxWidth) {
+      lines.push(line);
+      line = w + ' ';
+    } else {
+      line = test;
+    }
+  });
+  lines.push(line);
+
+  const startY = canvas.height / 2 - (lines.length - 1) * fontSize * 0.6;
+
+  lines.forEach((l, i) => {
+    ctx.fillText(l.trim(), canvas.width / 2, startY + i * fontSize * 1.2);
+  });
 
   const img = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-
   for(let y=0;y<canvas.height;y+=6){
     for(let x=0;x<canvas.width;x+=6){
       const i=(y*canvas.width+x)*4;
@@ -151,8 +166,7 @@ function buildText(word){
         textParticles.push({
           x:Math.random()*canvas.width,
           y:Math.random()*canvas.height,
-          tx:x,
-          ty:y
+          tx:x, ty:y
         });
       }
     }
@@ -200,10 +214,11 @@ document.getElementById('startBtn').onclick = () => {
   setInterval(() => {
     wordIndex = (wordIndex + 1) % words.length;
     buildText(words[wordIndex]);
-  }, 3500);
+  }, 5500);
 };
 </script>
 </body>
 </html>
+
 
 
